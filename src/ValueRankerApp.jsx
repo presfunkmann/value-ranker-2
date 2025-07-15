@@ -31,6 +31,18 @@ export default function ValueRankerApp() {
   const [history, setHistory] = useState([]);           // snapshots for undo
 
   // ------------------------------------------------------------
+  //  Helpers
+  // ------------------------------------------------------------
+  const snapshot = () => ({
+    queue: [...queue],          // clone to avoid later mutation surprises
+    sorted: [...sorted],
+    candidate,
+    low,
+    high,
+    lastPair: lastPair ? [...lastPair] : null,
+  });
+
+  // ------------------------------------------------------------
   //  Seed next candidate whenever we’re ready
   // ------------------------------------------------------------
   useEffect(() => {
@@ -69,31 +81,25 @@ export default function ValueRankerApp() {
   }, [candidate, low, high, sorted]);
 
   // ------------------------------------------------------------
-  //  Helpers
+  //  Core actions
   // ------------------------------------------------------------
-  const snapshot = () => ({
-    queue: [...queue],
-    sorted: [...sorted],
-    candidate,
-    low,
-    high,
-    lastPair: lastPair ? [...lastPair] : null
-  });
-
   const insertCandidate = (index) => {
-    setHistory((h) => [...h, snapshot()]); // <-- snapshot BEFORE changing state
     setSorted((s) => {
       const copy = [...s];
       copy.splice(index, 0, candidate);
       return copy;
     });
-    // keep lastPair visible; it refers to the pick that determined this insertion
+    // DO NOT push a history snapshot here; insertion is a continuation
+    // of the prior comparison that is already snapshotted in choose() below.
     setCandidate(null);
   };
 
   const choose = (picked) => {
     if (!currentPair) return;
-    setHistory((h) => [...h, snapshot()]); // <-- snapshot BEFORE changing state
+
+    // Save state BEFORE mutating anything so undo reverses this choice.
+    setHistory((h) => [...h, snapshot()]);
+
     const [cand, comp] = currentPair;
     setLastPair([cand, comp, picked]);
 
@@ -105,15 +111,18 @@ export default function ValueRankerApp() {
   };
 
   const undo = () => {
-    if (!history.length) return;
-    const prev = history[history.length - 1];
-    setHistory((h) => h.slice(0, -1));
-    setQueue(prev.queue);
-    setSorted(prev.sorted);
-    setCandidate(prev.candidate);
-    setLow(prev.low);
-    setHigh(prev.high);
-    setLastPair(prev.lastPair);
+    setHistory((h) => {
+      if (!h.length) return h;
+      const prev = h[h.length - 1];
+      // Restore snapshot
+      setQueue(prev.queue);
+      setSorted(prev.sorted);
+      setCandidate(prev.candidate);
+      setLow(prev.low);
+      setHigh(prev.high);
+      setLastPair(prev.lastPair);
+      return h.slice(0, -1);
+    });
   };
 
   // ------------------------------------------------------------
@@ -146,8 +155,14 @@ export default function ValueRankerApp() {
       {currentPair ? (
         <div className="flex flex-col items-center gap-6 w-full max-w-3xl">
           <div className="flex gap-8 flex-wrap justify-center w-full">
-            <Card valueName={currentPair[0]} onClick={() => choose(currentPair[0])} />
-            <Card valueName={currentPair[1]} onClick={() => choose(currentPair[1])} />
+            <Card
+              valueName={currentPair[0]}
+              onClick={() => choose(currentPair[0])}
+            />
+            <Card
+              valueName={currentPair[1]}
+              onClick={() => choose(currentPair[1])}
+            />
           </div>
           <button onClick={undo} className="text-sm font-medium underline">
             Undo last
@@ -163,13 +178,19 @@ export default function ValueRankerApp() {
       {lastPair && (
         <div className="flex flex-col items-center gap-3 w-full max-w-xs">
           <Card valueName={lastPair[2]} highlight />
-          <Card valueName={lastPair[2] === lastPair[0] ? lastPair[1] : lastPair[0]} />
+          <Card
+            valueName={
+              lastPair[2] === lastPair[0] ? lastPair[1] : lastPair[0]
+            }
+          />
         </div>
       )}
 
       {/* Running list */}
       <div className="w-full max-w-md">
-        <h3 className="text-md font-medium mb-2">Ranked so far ({sorted.length})</h3>
+        <h3 className="text-md font-medium mb-2">
+          Ranked so far ({sorted.length})
+        </h3>
         <div className="flex flex-wrap gap-2">
           {sorted.map((name, idx) => (
             <span key={name} className="text-xs bg-gray-200 rounded px-2 py-1">
