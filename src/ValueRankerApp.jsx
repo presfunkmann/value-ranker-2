@@ -245,7 +245,7 @@ export default function ValueRankerApp() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col items-center p-6 gap-10 w-full">
       <div className="flex flex-col items-center gap-2">
-        <img src="/favicon.png" alt="Value Ranker logo" className="w-12 h-12" />
+        <img src="/favicon.png" alt="Value Ranker logo" className="w-[150px] h-[150px]" />
         <h1 className="text-4xl font-bold">Value Ranker, 2!</h1>
       </div>
 
