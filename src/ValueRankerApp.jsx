@@ -72,30 +72,29 @@ export default function ValueRankerApp() {
   //  Helpers
   // ------------------------------------------------------------
   const snapshot = () => ({
-    queue,
-    sorted,
+    queue: [...queue],
+    sorted: [...sorted],
     candidate,
     low,
     high,
-    lastPair
+    lastPair: lastPair ? [...lastPair] : null
   });
 
   const insertCandidate = (index) => {
+    setHistory((h) => [...h, snapshot()]); // <-- snapshot BEFORE changing state
     setSorted((s) => {
       const copy = [...s];
       copy.splice(index, 0, candidate);
       return copy;
     });
-    setHistory((h) => [...h, snapshot()]);
     // keep lastPair visible; it refers to the pick that determined this insertion
     setCandidate(null);
   };
 
   const choose = (picked) => {
     if (!currentPair) return;
+    setHistory((h) => [...h, snapshot()]); // <-- snapshot BEFORE changing state
     const [cand, comp] = currentPair;
-
-    setHistory((h) => [...h, snapshot()]);
     setLastPair([cand, comp, picked]);
 
     if (picked === cand) {
