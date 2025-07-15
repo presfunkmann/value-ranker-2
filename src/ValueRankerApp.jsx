@@ -124,7 +124,7 @@ export default function ValueRankerApp() {
     <div
       onClick={onClick}
       className={`w-full max-w-xs p-4 rounded-2xl shadow-md border border-gray-200 cursor-pointer bg-white transition hover:shadow-lg ${
-        highlight ? "bg-blue-100" : ""
+        highlight ? "bg-blue-300" : ""
       }`}
     >
       <h2 className="text-lg font-semibold text-center text-gray-800">
