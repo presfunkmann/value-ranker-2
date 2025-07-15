@@ -244,12 +244,15 @@ export default function ValueRankerApp() {
   // ------------------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col items-center p-6 gap-10 w-full">
-      <h1 className="text-4xl font-bold">Value Ranker</h1>
+      <div className="flex flex-col items-center gap-2">
+        <img src="/favicon.png" alt="Value Ranker logo" className="w-12 h-12" />
+        <h1 className="text-4xl font-bold">Value Ranker, 2!</h1>
+      </div>
 
       {/* Import area (always visible for simplicity) */}
       <div className="w-full max-w-xl flex flex-col gap-2">
         <textarea
-          placeholder="Paste comparisons here (e.g., Achievement>Adventure) one per line"
+          placeholder="Paste past selections to start where you left off (e.g., Achievement>Adventure) one per line"
           value={importText}
           onChange={(e) => setImportText(e.target.value)}
           className="w-full h-24 p-2 border rounded"
